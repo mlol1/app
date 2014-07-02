@@ -25,11 +25,6 @@ args$max <- input$range[2]
 do.call(percent_spplot, args)
     })
 
-output$map <- renderPlot({
 
-  map('worldHires','Ireland')
-
-  }
-)
   }
 )
