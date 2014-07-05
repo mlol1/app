@@ -25,8 +25,7 @@ shinyUI(fluidPage(
 
   
     mainPanel(
-      plotOutput("spplot"),
-      plotOutput("maps")
+      plotOutput("spplot")
     )
     
     )
