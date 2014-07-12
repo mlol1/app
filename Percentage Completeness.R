@@ -39,7 +39,8 @@ Percentage_completeness<-as.data.frame(cbind(percent_ALL,
 
 names(Percentage_completeness)<-(c("County", "ALL_PERCENT", "NACECODE_S_PERCENT", "NACECODE_G_PERCENT","NACECODE_O_PERCENT", 
 "NACECODE_P_PERCENT" ,"NACECODE_I_PERCENT","NACECODE_Q_PERCENT"))
-
+#adding column with name of original data frame for  all precent files. this is so they can be combined by row,
+#while distinguishing one data frame from the other
 variable<-c("percent_ALL","percent_ALL","percent_ALL","percent_ALL","percent_ALL","percent_ALL","percent_ALL","percent_ALL",
             "percent_ALL","percent_ALL","percent_ALL","percent_ALL","percent_ALL","percent_ALL","percent_ALL","percent_ALL",
             "percent_ALL","percent_ALL","percent_ALL","percent_ALL","percent_ALL","percent_ALL","percent_ALL","percent_ALL",
@@ -98,12 +99,13 @@ names(percent_Q)<-c("County","percent","variable")
 
 
 
-
+#binding by rows
 Percentage_completeness_rows<-as.data.frame(rbind(percent_ALL,
                                                   percent_S,percent_G,percent_O,
                                                   percent_P,percent_I,percent_Q))
 
 
+#take a look to see that it turned out alright then save as a csv file
 View(Percentage_completeness)
 write.csv(Percentage_completeness,"C:/Users/mlol1/Desktop/OSM-GEODIRECTORY-PROJECT/Percentage_completeness.csv")
 View(Percentage_completeness_rows)
