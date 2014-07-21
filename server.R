@@ -91,7 +91,6 @@ shinyServer(function(input, output, session){
     var.opts<-namel(colnames(obj))
     selectInput("group","Groups:", var.opts) # uddate UI 				 
   }) 
-  shinyServer(function (input, output) {
     
     output$linech <- renderGvis({
       OSM <- switch(input$OSM,    
