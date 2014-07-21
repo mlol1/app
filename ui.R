@@ -2,10 +2,6 @@
 shinyUI(fluidPage(
   titlePanel("Visualisations for identifiable non-residential buildings in OSM V GEODIRECTORY"),
   
-#shinyUI(pageWithSidebar(
-  # title
-  headerPanel("Select Options"),
-  
   #input
   sidebarPanel
   (
@@ -23,24 +19,58 @@ shinyUI(fluidPage(
     
     sliderInput("range", 
                 label = "Range of interest:",
-                min = 0, max = 100, value = c(0, 100)),
+                min = 0, max = 100, value = c(0, 100),animate=TRUE),
+    fluidRow(
+      column(4, 
+             selectInput("char1", "",
+                         choices =levels(counties_rows$variable)))),
     
-    helpText("Choose between box plot, histogram, density plot or bar plot "),
-    selectInput("dataset","Data:", 
-                list(Counties_numbers = "Counties_numbers")),
-    uiOutput("variable"), 	# depends on dataset ( set by output$variable in  server.R)
-    uiOutput("group"),  		# depends on dataset	( set by output$group in  server.R)
-    selectInput("plot.type","Plot Type:", 
-                list(boxplot = "boxplot", histogram = "histogram", density = "density", bar = "bar")
-    ),
-    checkboxInput("show.points", "show points", TRUE)
+    helpText("Display line charts, box plot, scatter plot, bubble charts, histogram, density plot for the compared variables "),    
+    selectInput("OSM",label = "Choose an OpenStreetMap (OSM) variable to compare",
+                choices= c(
+                  "OSM_ALL",                  
+                  "OSM_S",
+                  "OSM_G",                  
+                  "OSM_O",                  
+                  "OSM_P",                  
+                  "OSM_I",                  
+                  "OSM_Q"
+                ),selected = "OSM_ALL"),
+    
+    selectInput("GEODIR",label = "Choose a Geodirectory (GEODIR) variable to compare",
+                choices= c(
+                  "GEODIR_ALL",
+                  "GEODIR_S",
+                  "GEODIR_G",
+                  "GEODIR_O",
+                  "GEDOIR_P",                  
+                  "GEODIR_I",                  
+                  "GEODIR_Q"),selected = "GEODIR_ALL"),
+    sliderInput("binsx",
+                "Number of bins:",
+                min = 0,
+                max = 50,
+                value = 30),
+    sliderInput("binsy",
+                "Number of bins:",
+                min = 100,
+                max = 200,
+                value = 100)
   ),	
-  
+
   # output				
   mainPanel(
-    plotOutput("spplot"),
-    h3(textOutput("caption")),
-    #h3(htmlOutput("caption")),
-    uiOutput("plot") # depends on input 
-  )
-))
+    
+    tabsetPanel(
+      tabPanel("Choropleth",h4("Choropleth Map of Percentage Completeness"),plotOutput("spplot"),  
+               htmlOutput("linech"),
+               htmlOutput("barch"),
+               htmlOutput("scatterch"),
+               htmlOutput("bubblech"),
+               htmlOutput("histch"),
+               plotOutput("distPlot")),
+               tabPanel("Markers",h4("Marker representation of Percentage Completeness"),htmlOutput("googleVismerged"))
+      )
+    )
+
+  ))
