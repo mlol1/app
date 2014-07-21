@@ -57,7 +57,7 @@ shinyServer(function(input, output, session){
                      options=list(height=800,fontSize=12,legend="none"))
     geochart=gvisGeoChart(counties_rows[(counties_rows$variable)==input$char1,],
                           locationvar="County", colorvar="percent",
-                          options=list(region="IE", dataMode="markers", 
+                          options=list(region="IE", displayMode="markers", 
                                        resolution="provinces",
                                        colorAxis="{colors:['#4daf4a','blue']}"
                           ))
