@@ -8,21 +8,30 @@ library(googleVis)
 library(reshape)
 library(reldist)
 
-
-counties <- read.csv2("http://cs1.ucc.ie/~mlol1/CS6500/data/Percentage_Completeness.csv")
+counties <- read.csv("http://cs1.ucc.ie/~mlol1/CS6500/data/Percentage_Completeness.csv")
 counties$X<-NULL
 counties<-as.data.frame(counties)
-Counties_numbers<-read.csv2("http://cs1.ucc.ie/~mlol1/CS6500/Counties_numbers.csv")
-Counties_numbers$X<-NULL 
-raw.data <- Counties_numbers
-tab <- raw.data
-counties_rows<- read.csv2("http://cs1.ucc.ie/~mlol1/CS6500/data/Percentage_completeness_rows.csv")
+
+Counties_numbers<-read.csv("http://cs1.ucc.ie/~mlol1/CS6500/Counties_numbers.csv")
+Counties_numbers$X<-NULL
+tab <- Counties_numbers
+
+counties_rows<- read.csv("http://cs1.ucc.ie/~mlol1/CS6500/data/Percentage_completeness_rows.csv")
 counties_rows$X<-NULL
-counties_rows<-as.data.frame(counties_rows)
-counties_rows_numbers<-read.csv2("http://cs1.ucc.ie/~mlol1/CS6500/Counties_numbers.csv")
+counties_rows<-cbind(as.character(counties_rows$County), as.numeric(counties_rows$percent*100), as.character(counties_rows$variable))
+counties_rows<-data.frame(counties_rows)
+names(counties_rows)<-c("County","percent","variable")
+counties_rows$percent<-as.numeric(counties_rows$percent)
+
+
+counties_rows_numbers<-read.csv("http://cs1.ucc.ie/~mlol1/CS6500/Counties_numbers.csv")
 counties_rows_numbers$X<-NULL
+
+
+
 source("helpers.R")
-# shiny server side code for each call
+
+
 shinyServer(function(input, output, session){
   output$spplot <- renderPlot({
     
@@ -40,6 +49,21 @@ shinyServer(function(input, output, session){
     
     do.call(percent_spplot, args)
   })
+  output$googleVismerged = renderGvis({
+    
+    df=counties_rows[counties_rows$variable==input$char1,]
+    bar=gvisBarChart(df[order(df$percent),],
+                     "County","percent",
+                     options=list(height=800,fontSize=12,legend="none"))
+    geochart=gvisGeoChart(counties_rows[(counties_rows$variable)==input$char1,],
+                          locationvar="County", colorvar="percent",
+                          options=list(region="IE", dataMode="markers", 
+                                       resolution="provinces",
+                                       colorAxis="{colors:['#4daf4a','blue']}"
+                          ))
+    
+    gvisMerge(bar,geochart,horizontal=TRUE)
+  })
   
   #update variable and group based on dataset
   output$variable <- renderUI({ 
@@ -48,286 +72,212 @@ shinyServer(function(input, output, session){
     var.opts<-namel(colnames(obj))
     selectInput("variable","Variable:", var.opts) # uddate UI     		 
   }) 
-  
-  
-  output$county <- renderUI({ 
-    obj<-switch(input$counties,
-                "county" = county)   
-    var.opts<-namel(colnames(obj))
-    selectInput("county","county:", var.opts) # uddate UI     		 
-  }) 
-  
-  output$groups <- renderUI({ 
-    obj<-switch(input$counties,
-                "Percentage_Completeness" = Percentage_Completeness)   
-    var.opts<-namel(colnames(obj))
-    selectInput("groups","Groups:", var.opts) # uddate UI 				 
-  }) 
-  
-  
-  
-  output$googleVismerged = renderGvis({
-    df=counties_rows[counties_rows$variable==input$char1,]
-    bar=gvisBarChart(df[order(df$percent),],
-                     "County","percent",
-                     options=list(height=800,fontSize=12,legend="none"))
-    geochart=gvisGeoChart(counties_rows[counties_rows$variable==input$char1,],
-                          locationvar="County", colorvar="percent",
-                          options=list(region="IE", dataMode="regions", 
-                                       resolution="provinces",
-                                       colorAxis="{colors:['#4daf4a','blue']}"
+
+  output$linech <- renderGvis({
+    OSM <- switch(input$OSM,    
+                  "OSM_ALL"   = tab$OSM_ALL,
+                  "OSM_S"      = tab$OSM_S,
+                  "OSM_G"      = tab$OSM_G,
+                  "OSM_O"      = tab$OSM_O,
+                  "OSM_P"     =  tab$OSM_P,
+                  "OSM_I"      = tab$OSM_I,
+                  "OSM_Q"      = tab$OSM_Q)
+    
+    GEODIR <- switch(input$GEODIR,    
+                     "GEODIR_ALL" = tab$GEODIR_ALL,
+                     "GEODIR_S"   = tab$GEODIR_S,
+                     "GEODIR_G"   = tab$GEODIR_G,
+                     "GEODIR_O"   = tab$GEODIR_O,
+                     "GEDOIR_P"   = tab$GEDOIR_P,
+                     "GEODIR_I"   = tab$GEODIR_I,
+                     "GEODIR_Q" =  tab$GEODIR_Q)  
+    
+    #### Plots ###
+    
+    df=data.frame(County=tab$County, 
+                  OSM=OSM, 
+                  GEODIR=GEODIR)
+    
+    Line <- gvisLineChart(df,"County", c("OSM","GEODIR"),
+                          options=list(
+                            title="OSM V GEODIR Comparison by County (Numbers)",
+                            titlePosition='out',
+                            hAxis="{slantedText:'true',slantedTextAngle:90}",
+                            titleTextStyle="{color:'black',fontName:'Courier'}",
+                            legend="{color:'black',fontName:'Courier'}",
+                            fontSize="10"
                           ))
     
-    gvisMerge(bar,geochart,horizontal=TRUE)
+    return(Line)
+    
+  })
+  output$barch <- renderGvis({
+    OSM <- switch(input$OSM,    
+                  "OSM_ALL"   = tab$OSM_ALL,
+                  "OSM_S"      = tab$OSM_S,
+                  "OSM_G"      = tab$OSM_G,
+                  "OSM_O"      = tab$OSM_O,
+                  "OSM_P"     =  tab$OSM_P,
+                  "OSM_I"      = tab$OSM_I,
+                  "OSM_Q"      = tab$OSM_Q)
+    
+    GEODIR <- switch(input$GEODIR,    
+                     "GEODIR_ALL" = tab$GEODIR_ALL,
+                     "GEODIR_S"   = tab$GEODIR_S,
+                     "GEODIR_G"   = tab$GEODIR_G,
+                     "GEODIR_O"   = tab$GEODIR_O,
+                     "GEDOIR_P"   = tab$GEDOIR_P,
+                     "GEODIR_I"   = tab$GEODIR_I,
+                     "GEODIR_Q" =  tab$GEODIR_Q)      
+    
+    #### Plots ###
+    
+    df=data.frame(County=tab$County, 
+                  OSM=OSM, 
+                  GEODIR=GEODIR)
+    
+    Column <- gvisColumnChart(df,"County", c("OSM","GEODIR"))
+        
+    return(Column)    
   })
   
-  
-  
-  
-  
-  output$group <- renderUI({ 
-    obj<-switch(input$dataset,
-                "Counties_numbers" = Counties_numbers)	 
-    var.opts<-namel(colnames(obj))
-    selectInput("group","Groups:", var.opts) # uddate UI 				 
-  }) 
+  output$scatterch <- renderGvis({
+    OSM <- switch(input$OSM,    
+                  "OSM_ALL"   = tab$OSM_ALL,
+                  "OSM_S"      = tab$OSM_S,
+                  "OSM_G"      = tab$OSM_G,
+                  "OSM_O"      = tab$OSM_O,
+                  "OSM_P"     =  tab$OSM_P,
+                  "OSM_I"      = tab$OSM_I,
+                  "OSM_Q"      = tab$OSM_Q)
     
-    output$linech <- renderGvis({
-      OSM <- switch(input$OSM,    
-                    "OSM_ALL"   = tab$OSM_ALL,
-                    "OSM_S"      = tab$OSM_S,
-                    "OSM_G"      = tab$OSM_G,
-                    "OSM_O"      = tab$OSM_O,
-                    "OSM_P"     =  tab$OSM_P,
-                    "OSM_I"      = tab$OSM_I,
-                    "OSM_Q"      = tab$OSM_Q)
-      
-      GEODIR <- switch(input$GEODIR,    
-                       "GEODIR_ALL" = tab$GEODIR_ALL,
-                       "GEODIR_S"   = tab$GEODIR_S,
-                       "GEODIR_G"   = tab$GEODIR_G,
-                       "GEODIR_O"   = tab$GEODIR_O,
-                       "GEDOIR_P"   = tab$GEDOIR_P,
-                       "GEODIR_I"   = tab$GEODIR_I,
-                       "GEODIR_Q" =  tab$GEODIR_Q)  
-      
-      
-      
-      
-      #### Plots ###
-      
-      df=data.frame(County=tab$County, 
-                    OSM=OSM, 
-                    GEODIR=GEODIR)
-      
-      
-      Line <- gvisLineChart(df,"County", c("OSM","GEODIR"),
+    GEODIR <- switch(input$GEODIR,    
+                     "GEODIR_ALL" = tab$GEODIR_ALL,
+                     "GEODIR_S"   = tab$GEODIR_S,
+                     "GEODIR_G"   = tab$GEODIR_G,
+                     "GEODIR_O"   = tab$GEODIR_O,
+                     "GEDOIR_P"   = tab$GEDOIR_P,
+                     "GEODIR_I"   = tab$GEODIR_I,
+                     "GEODIR_Q" =  tab$GEODIR_Q)  
+    
+    #### Plots ###
+    dat <- data.frame(OSM,GEODIR)
+    SC <- gvisScatterChart(dat, 
+                           options=list(
+                             title="GEODIR~OSM Totals Scatter plot comparison",
+                             legend="none",
+                             pointSize=10,
+                             series="{
+                             0: { pointShape: 'circle', color: 'black' }
+  }"))
+  
+    
+    return(SC)
+    
+})
+
+
+output$bubblech <- renderGvis({
+  OSM <- switch(input$OSM,    
+                "OSM_ALL"   = tab$OSM_ALL,
+                "OSM_S"      = tab$OSM_S,
+                "OSM_G"      = tab$OSM_G,
+                "OSM_O"      = tab$OSM_O,
+                "OSM_P"     =  tab$OSM_P,
+                "OSM_I"      = tab$OSM_I,
+                "OSM_Q"      = tab$OSM_Q)
+  
+  GEODIR <- switch(input$GEODIR,    
+                   "GEODIR_ALL" = tab$GEODIR_ALL,
+                   "GEODIR_S"   = tab$GEODIR_S,
+                   "GEODIR_G"   = tab$GEODIR_G,
+                   "GEODIR_O"   = tab$GEODIR_O,
+                   "GEDOIR_P"   = tab$GEDOIR_P,
+                   "GEODIR_I"   = tab$GEODIR_I,
+                   "GEODIR_Q" =  tab$GEODIR_Q)   
+  #### Plots ###
+  
+  df=data.frame(County=tab$County, 
+                OSM=OSM, 
+                GEODIR=GEODIR,
+                Percentage_Completeness=(round((OSM/GEODIR)*100)))
+  
+  Bubble <- gvisBubbleChart(df, idvar="County", 
+                            xvar="OSM", yvar="GEODIR",
+                            colorvar="County", sizevar="Percentage_Completeness",
                             options=list(
-                              title="OSM V GEODIR Comparison by County (Numbers)",
-                              titlePosition='out',
-                              hAxis="{slantedText:'true',slantedTextAngle:90}",
-                              titleTextStyle="{color:'black',fontName:'Courier'}",
-                              legend="{color:'black',fontName:'Courier'}",
-                              fontSize="10"
-                            ))
-      
-      
-      ed.output <- (Line)
-      
-      return(ed.output)
-      
-    })
-    output$barch <- renderGvis({
-      OSM <- switch(input$OSM,    
-                    "OSM_ALL"   = tab$OSM_ALL,
-                    "OSM_S"      = tab$OSM_S,
-                    "OSM_G"      = tab$OSM_G,
-                    "OSM_O"      = tab$OSM_O,
-                    "OSM_P"     =  tab$OSM_P,
-                    "OSM_I"      = tab$OSM_I,
-                    "OSM_Q"      = tab$OSM_Q)
-      
-      GEODIR <- switch(input$GEODIR,    
-                       "GEODIR_ALL" = tab$GEODIR_ALL,
-                       "GEODIR_S"   = tab$GEODIR_S,
-                       "GEODIR_G"   = tab$GEODIR_G,
-                       "GEODIR_O"   = tab$GEODIR_O,
-                       "GEDOIR_P"   = tab$GEDOIR_P,
-                       "GEODIR_I"   = tab$GEODIR_I,
-                       "GEODIR_Q" =  tab$GEODIR_Q)  
-      
-      
-      
-      
-      #### Plots ###
-      
-      df=data.frame(County=tab$County, 
-                    OSM=OSM, 
-                    GEODIR=GEODIR)
-      
-      
-      
-      Column <- gvisColumnChart(df,"County", c("OSM","GEODIR"))
-      
-      ed1.output <- (Column)
-      
-      
-      return(ed1.output)
-      
-    })
-    
-    output$scatterch <- renderGvis({
-      OSM <- switch(input$OSM,    
-                    "OSM_ALL"   = tab$OSM_ALL,
-                    "OSM_S"      = tab$OSM_S,
-                    "OSM_G"      = tab$OSM_G,
-                    "OSM_O"      = tab$OSM_O,
-                    "OSM_P"     =  tab$OSM_P,
-                    "OSM_I"      = tab$OSM_I,
-                    "OSM_Q"      = tab$OSM_Q)
-      
-      GEODIR <- switch(input$GEODIR,    
-                       "GEODIR_ALL" = tab$GEODIR_ALL,
-                       "GEODIR_S"   = tab$GEODIR_S,
-                       "GEODIR_G"   = tab$GEODIR_G,
-                       "GEODIR_O"   = tab$GEODIR_O,
-                       "GEDOIR_P"   = tab$GEDOIR_P,
-                       "GEODIR_I"   = tab$GEODIR_I,
-                       "GEODIR_Q" =  tab$GEODIR_Q)  
-      
-      
-      
-      
-      #### Plots ###
-      
-      
-      
-      dat <- data.frame(OSM,GEODIR)
-      SC <- gvisScatterChart(dat, 
-                             options=list(
-                               title="GEODIR~OSM Totals Scatter plot comparison",
-                               legend="none",
-                               pointSize=10,
-                               series="{
-                               0: { pointShape: 'circle', color: 'black' }
-    }"))
-  
-      ed2.output <- (SC)
-      
-      
-      return(ed2.output)
-      
-  })
+                              pointSize=5,
+                              hAxis='{minValue:75, maxValue:125}',
+                              chartArea= "{width: '125%', height: '125%'}",
+                              width=900, height=500,                           
+                              bubble="{textStyle:{color: 'none'}}"))
   
   
-  output$bubblech <- renderGvis({
-    OSM <- switch(input$OSM,    
-                  "OSM_ALL"   = tab$OSM_ALL,
-                  "OSM_S"      = tab$OSM_S,
-                  "OSM_G"      = tab$OSM_G,
-                  "OSM_O"      = tab$OSM_O,
-                  "OSM_P"     =  tab$OSM_P,
-                  "OSM_I"      = tab$OSM_I,
-                  "OSM_Q"      = tab$OSM_Q)
-    
-    GEODIR <- switch(input$GEODIR,    
-                     "GEODIR_ALL" = tab$GEODIR_ALL,
-                     "GEODIR_S"   = tab$GEODIR_S,
-                     "GEODIR_G"   = tab$GEODIR_G,
-                     "GEODIR_O"   = tab$GEODIR_O,
-                     "GEDOIR_P"   = tab$GEDOIR_P,
-                     "GEODIR_I"   = tab$GEODIR_I,
-                     "GEODIR_Q" =  tab$GEODIR_Q)  
-    
-    
-    
-    
-    #### Plots ###
-    
-    df=data.frame(County=tab$County, 
-                  OSM=OSM, 
-                  GEODIR=GEODIR,
-                  Percentage_Completeness=(round((OSM/GEODIR)*100)))
-    
-    Bubble <- gvisBubbleChart(df, idvar="County", 
-                              xvar="OSM", yvar="GEODIR",
-                              colorvar="County", sizevar="Percentage_Completeness",
-                              options=list(
-                                pointSize=5,
-                                hAxis='{minValue:75, maxValue:125}',
-                                chartArea= "{width: '125%', height: '125%'}",
-                                width=900, height=500,                           
-                                bubble="{textStyle:{color: 'none'}}"))
-    
-    ed3.output <- (Bubble)
-    
-    
-    return(ed3.output)
-    
-  })
+  return(Bubble)
   
-  output$histch <- renderGvis({
-    OSM <- switch(input$OSM,    
-                  "OSM_ALL"   = tab$OSM_ALL,
-                  "OSM_S"      = tab$OSM_S,
-                  "OSM_G"      = tab$OSM_G,
-                  "OSM_O"      = tab$OSM_O,
-                  "OSM_P"     =  tab$OSM_P,
-                  "OSM_I"      = tab$OSM_I,
-                  "OSM_Q"      = tab$OSM_Q)
-    
-    GEODIR <- switch(input$GEODIR,    
-                     "GEODIR_ALL" = tab$GEODIR_ALL,
-                     "GEODIR_S"   = tab$GEODIR_S,
-                     "GEODIR_G"   = tab$GEODIR_G,
-                     "GEODIR_O"   = tab$GEODIR_O,
-                     "GEDOIR_P"   = tab$GEDOIR_P,
-                     "GEODIR_I"   = tab$GEODIR_I,
-                     "GEODIR_Q" =  tab$GEODIR_Q)  
-    #### Plots ###
-    
-    df=data.frame(County=tab$County, 
-                  OSM=OSM, 
-                  GEODIR=GEODIR,
-                  Percentage_Completeness=(round((OSM/GEODIR)*100)))
-    data <- df[as.numeric(df$County),c("OSM", "GEODIR")]
-    
-    Histogram <- gvisHistogram(data, option=list(title="County Totals",
-                                                 legend="{ position: 'none' }",
-                                                 colors="['#5C3292', '#1A8763', '#871B47']"))
-    ed4.output <- (Histogram)  
-    return(ed4.output)
-    
-  })
+})
+
+output$histch <- renderGvis({
+  OSM <- switch(input$OSM,    
+                "OSM_ALL"   = tab$OSM_ALL,
+                "OSM_S"      = tab$OSM_S,
+                "OSM_G"      = tab$OSM_G,
+                "OSM_O"      = tab$OSM_O,
+                "OSM_P"     =  tab$OSM_P,
+                "OSM_I"      = tab$OSM_I,
+                "OSM_Q"      = tab$OSM_Q)
   
-  output$distPlot <- renderPlot({
-    
-    OSM <- switch(input$OSM,    
-                  "OSM_ALL"   = tab$OSM_ALL,
-                  "OSM_S"      = tab$OSM_S,
-                  "OSM_G"      = tab$OSM_G,
-                  "OSM_O"      = tab$OSM_O,
-                  "OSM_P"     =  tab$OSM_P,
-                  "OSM_I"      = tab$OSM_I,
-                  "OSM_Q"      = tab$OSM_Q)
-    
-    GEODIR <- switch(input$GEODIR,    
-                     "GEODIR_ALL" = tab$GEODIR_ALL,
-                     "GEODIR_S"   = tab$GEODIR_S,
-                     "GEODIR_G"   = tab$GEODIR_G,
-                     "GEODIR_O"   = tab$GEODIR_O,
-                     "GEDOIR_P"   = tab$GEDOIR_P,
-                     "GEODIR_I"   = tab$GEODIR_I,
-                     "GEODIR_Q" =  tab$GEODIR_Q) 
-    
-    x <- OSM 
-    y <- GEODIR
-    
-    binsx <- seq(min(x), max(x), length.out = input$bins + 1)
-    binsy <- seq(min(y), max(y), length.out = input$bins + 1)
-    hist(x, breaks = binsx, col = 'darkgray', border = 'white')
-    hist(y, breaks = binsy, col = 'blue', border = 'white',add=TRUE)
-    box()
-  })
+  GEODIR <- switch(input$GEODIR,    
+                   "GEODIR_ALL" = tab$GEODIR_ALL,
+                   "GEODIR_S"   = tab$GEODIR_S,
+                   "GEODIR_G"   = tab$GEODIR_G,
+                   "GEODIR_O"   = tab$GEODIR_O,
+                   "GEDOIR_P"   = tab$GEDOIR_P,
+                   "GEODIR_I"   = tab$GEODIR_I,
+                   "GEODIR_Q" =  tab$GEODIR_Q)  
+  #### Plots ###
   
+  df=data.frame(County=tab$County, 
+                OSM=OSM, 
+                GEODIR=GEODIR,
+                Percentage_Completeness=(round((OSM/GEODIR)*100)))
+  data <- df[as.numeric(df$County),c("OSM", "GEODIR")]
+  
+  Histogram <- gvisHistogram(data, option=list(title="County Totals",
+                                               legend="{ position: 'none' }",
+                                               colors="['#5C3292', '#1A8763', '#871B47']")) 
+  return(Histogram)
+  
+})
+
+output$distPlot <- renderPlot({
+  
+  OSM <- switch(input$OSM,    
+                "OSM_ALL"   = tab$OSM_ALL,
+                "OSM_S"      = tab$OSM_S,
+                "OSM_G"      = tab$OSM_G,
+                "OSM_O"      = tab$OSM_O,
+                "OSM_P"     =  tab$OSM_P,
+                "OSM_I"      = tab$OSM_I,
+                "OSM_Q"      = tab$OSM_Q)
+  
+  GEODIR <- switch(input$GEODIR,    
+                   "GEODIR_ALL" = tab$GEODIR_ALL,
+                   "GEODIR_S"   = tab$GEODIR_S,
+                   "GEODIR_G"   = tab$GEODIR_G,
+                   "GEODIR_O"   = tab$GEODIR_O,
+                   "GEDOIR_P"   = tab$GEDOIR_P,
+                   "GEODIR_I"   = tab$GEODIR_I,
+                   "GEODIR_Q" =  tab$GEODIR_Q) 
+  
+  x <- OSM 
+  y <- GEODIR
+  
+  binsx <- seq(min(x), max(x), length.out = input$binsx + 1)
+  binsy <- seq(min(y), max(y), length.out = input$binsy + 1)
+  hist(x, breaks = binsx, col=rgb(1,0,0,0.5), border = 'white',main="Overlapping Histogram", xlab="Frequency Distributions of OSM and GEODIR")
+  hist(y, breaks = binsy, col=rgb(0,0,1,0.5), border = 'white',add=TRUE)
+  box()
+})
+
 })
