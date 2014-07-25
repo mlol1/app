@@ -1,6 +1,12 @@
+counties_rows<- read.csv("http://cs1.ucc.ie/~mlol1/CS6500/data/Percentage_completeness_rows.csv")
+counties_rows$X<-NULL
+counties_rows<-cbind(as.character(counties_rows$County), as.numeric(counties_rows$percent*100), as.character(counties_rows$variable))
+counties_rows<-data.frame(counties_rows)
+names(counties_rows)<-c("County","percent","variable")
+
 ## UI for app
 shinyUI(fluidPage(
-  titlePanel("Visualisations for identifiable non-residential buildings in OSM V GEODIRECTORY"),
+ titlePanel("Visualisations for identifiable non-residential buildings in OSM V GEODIRECTORY"),
   
   #input
 sidebarPanel(
@@ -19,7 +25,7 @@ sidebarPanel(
 
     ## <embed percentages heat map here 
   mainPanel( 
-    
+
     tabsetPanel(
       tabPanel("Choropleth",h4("Choropleth Map of Percentage Completeness"),tags$embed(src="http://www.openheatmap.com/view.html?map=UnideadSaradaVestibulum", 
                                                                             tags$style(".alignRight { align: left; }", media = "all", type = "text/css"), 
@@ -63,10 +69,8 @@ sidebarPanel(
                           value = 100),
                plotOutput("distPlot"), height = "900px", width = "1000px"),
                tabPanel("Markers",h4("Marker representation of Percentage Completeness"),  
-                        fluidRow(
-                          column(4, 
                                  selectInput("char1", "",
-                                             choices =levels(counties_rows$variable)))),
+                                             choices =levels(counties_rows$variable)),
                 htmlOutput("googleVismerged"),
 
                  htmlOutput("bubblech"), width = "1000px", height = "900px"),
