@@ -54,15 +54,17 @@ shinyServer(function(input, output, session){
     df=counties_rows[counties_rows$variable==input$char1,]
     bar=gvisBarChart(df[order(df$percent),],
                      "County","percent",
-                     options=list(height=800,fontSize=12,legend="none"))
+                     options=list(height=1000, width=1000,
+                                  fontSize=12,legend="none"))
     geochart=gvisGeoChart(counties_rows[(counties_rows$variable)==input$char1,],
                           locationvar="County", colorvar="percent",
                           options=list(region="IE", displayMode="markers", 
                                        resolution="provinces",
-                                       colorAxis="{colors:['#4daf4a','blue']}"
+                                       colorAxis="{colors:['#4daf4a','blue']}",
+                                      magnifyingGlass.enable="{enable: true, zoomFactor: 7.5}"
                           ))
     
-    gvisMerge(bar,geochart,horizontal=TRUE)
+    gvisMerge(geochart,bar,horizontal=FALSE)
   })
   
   #update variable and group based on dataset
@@ -208,8 +210,8 @@ output$bubblech <- renderGvis({
                             options=list(
                               pointSize=5,
                               hAxis='{minValue:75, maxValue:125}',
-                              chartArea= "{width: '125%', height: '125%'}",
-                              width=900, height=500,                           
+                              chartArea= "{width: '100%', height: '100%'}",
+                             # width=1000, height=800,                           
                               bubble="{textStyle:{color: 'none'}}"))
   
   
@@ -279,5 +281,7 @@ output$distPlot <- renderPlot({
   hist(y, breaks = binsy, col=rgb(0,0,1,0.5), border = 'white',add=TRUE)
   box()
 })
+
+
 
 })
