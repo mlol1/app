@@ -19,7 +19,7 @@ sidebarPanel(
 
     ## <embed percentages heat map here 
   mainPanel( 
-
+    
     tabsetPanel(
       tabPanel("Choropleth",h4("Choropleth Map of Percentage Completeness"),tags$embed(src="http://www.openheatmap.com/view.html?map=UnideadSaradaVestibulum", 
                                                                             tags$style(".alignRight { align: left; }", media = "all", type = "text/css"), 
@@ -62,12 +62,13 @@ sidebarPanel(
                           max = 200,
                           value = 100),
                plotOutput("distPlot"), height = "900px", width = "1000px"),
-               tabPanel("Markers",h4("Marker representation of Percentage Completeness"), fluidRow(
-                 column(4, 
-                        selectInput("char1", "",
-                                    choices =levels(counties_rows$variable)))),              
+               tabPanel("Markers",h4("Marker representation of Percentage Completeness"),  
+                        fluidRow(
+                          column(4, 
+                                 selectInput("char1", "",
+                                             choices =levels(counties_rows$variable)))),
+                htmlOutput("googleVismerged"),
 
-                 htmlOutput("googleVismerged"),
                  htmlOutput("bubblech"), width = "1000px", height = "900px"),
       tabPanel("OSM Users",h4("check building locations, names and types"), tags$embed(src="http://www.openheatmap.com/view.html?map=CavitaryPurpurigenousNeuchtel", 
                                                                                        tags$style(".alignRight { align: left; }", media = "all", type = "text/css"), 
