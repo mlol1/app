@@ -1,6 +1,10 @@
 #based on code from https://gist.github.com/dgrapov/5792778 ; shiny tutorials http://shiny.rstudio.com/tutorial/ ;
 #http://cran.r-project.org/web/packages/googleVis/vignettes/googleVis_examples.htm and
 #http://spark.rstudio.com/heres/EAHU/
+#based on code from https://gist.github.com/dgrapov/5792778 ; shiny tutorials http://shiny.rstudio.com/tutorial/ ;
+#http://cran.r-project.org/web/packages/googleVis/vignettes/googleVis_examples.htm and
+#http://spark.rstudio.com/heres/EAHU/
+
 library(shiny)
 library(sp)
 library(RColorBrewer)
@@ -177,7 +181,6 @@ shinyServer(function(input, output, session){
     return(SC)
     
 })
-
 
 output$bubblech <- renderGvis({
   OSM <- switch(input$OSM,    
