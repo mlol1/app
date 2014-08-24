@@ -29,7 +29,7 @@ sidebarPanel(
     tabsetPanel(
       tabPanel("Choropleth",h4("Choropleth Map of Percentage Completeness"),tags$embed(src="http://www.openheatmap.com/view.html?map=UnideadSaradaVestibulum", 
                                                                             tags$style(".alignRight { align: left; }", media = "all", type = "text/css"), 
-                                                                            height = 850, width = 1000 ),),
+                                                                            height = 850, width = 1000 )),
               # plotOutput("spplot"),
               tabPanel(
               helpText("Display line charts, box plot, scatter plot, bubble charts, histogram, density plot for the compared variables "),    
