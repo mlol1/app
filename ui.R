@@ -31,7 +31,7 @@ sidebarPanel(
                                                                             tags$style(".alignRight { align: left; }", media = "all", type = "text/css"), 
                                                                             height = 850, width = 1000 )),
               # plotOutput("spplot"),
-              tabPanel(
+              tabPanel("Charts",
               helpText("Display line charts, box plot, scatter plot, bubble charts, histogram, density plot for the compared variables "),    
               selectInput("OSM",label = "Choose an OpenStreetMap (OSM) variable to compare",
                           choices= c(
